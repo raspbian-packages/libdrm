@@ -174,6 +174,15 @@ static const char *mode_flag_names[] = {
 
 static bit_name_fn(mode_flag)
 
+static void dump_fourcc(uint32_t fourcc)
+{
+	printf(" %c%c%c%c",
+		fourcc,
+		fourcc >> 8,
+		fourcc >> 16,
+		fourcc >> 24);
+}
+
 static void dump_encoders(struct device *dev)
 {
 	drmModeEncoder *encoder;
@@ -443,7 +452,7 @@ static void dump_planes(struct device *dev)
 
 		printf("  formats:");
 		for (j = 0; j < ovr->count_formats; j++)
-			printf(" %4.4s", (char *)&ovr->formats[j]);
+			dump_fourcc(ovr->formats[j]);
 		printf("\n");
 
 		if (plane->props) {
@@ -704,6 +713,7 @@ struct pipe_arg {
 };
 
 struct plane_arg {
+	uint32_t plane_id;  /* the id of plane to use */
 	uint32_t crtc_id;  /* the id of CRTC to bind to */
 	bool has_position;
 	int32_t x, y;
@@ -958,7 +968,7 @@ static int set_plane(struct device *dev, struct plane_arg *p)
 {
 	drmModePlane *ovr;
 	uint32_t handles[4] = {0}, pitches[4] = {0}, offsets[4] = {0};
-	uint32_t plane_id = 0;
+	uint32_t plane_id;
 	struct bo *plane_bo;
 	uint32_t plane_flags = 0;
 	int crtc_x, crtc_y, crtc_w, crtc_h;
@@ -982,16 +992,26 @@ static int set_plane(struct device *dev, struct plane_arg *p)
 		return -1;
 	}
 
-	for (i = 0; i < dev->resources->plane_res->count_planes && !plane_id; i++) {
+	plane_id = p->plane_id;
+
+	for (i = 0; i < dev->resources->plane_res->count_planes; i++) {
 		ovr = dev->resources->planes[i].plane;
-		if (!ovr || !format_support(ovr, p->fourcc))
+		if (!ovr)
 			continue;
 
-		if ((ovr->possible_crtcs & (1 << pipe)) && !ovr->crtc_id)
+		if (plane_id && plane_id != ovr->plane_id)
+			continue;
+
+		if (!format_support(ovr, p->fourcc))
+			continue;
+
+		if ((ovr->possible_crtcs & (1 << pipe)) && !ovr->crtc_id) {
 			plane_id = ovr->plane_id;
+			break;
+		}
 	}
 
-	if (!plane_id) {
+	if (i == dev->resources->plane_res->count_planes) {
 		fprintf(stderr, "no unused plane available for CRTC %u\n",
 			crtc->crtc->crtc_id);
 		return -1;
@@ -1359,6 +1379,11 @@ static int parse_plane(struct plane_arg *plane, const char *p)
 {
 	char *end;
 
+	plane->plane_id = strtoul(p, &end, 10);
+	if (*end != '@')
+		return -EINVAL;
+
+	p = end + 1;
 	plane->crtc_id = strtoul(p, &end, 10);
 	if (*end != ':')
 		return -EINVAL;
@@ -1430,7 +1455,7 @@ static void usage(char *name)
 	fprintf(stderr, "\t-p\tlist CRTCs and planes (pipes)\n");
 
 	fprintf(stderr, "\n Test options:\n\n");
-	fprintf(stderr, "\t-P <crtc_id>:<w>x<h>[+<x>+<y>][*<scale>][@<format>]\tset a plane\n");
+	fprintf(stderr, "\t-P <plane_id>@<crtc_id>:<w>x<h>[+<x>+<y>][*<scale>][@<format>]\tset a plane\n");
 	fprintf(stderr, "\t-s <connector_id>[,<connector_id>][@<crtc_id>]:<mode>[-<vrefresh>][@<format>]\tset a mode\n");
 	fprintf(stderr, "\t-C\ttest hw cursor\n");
 	fprintf(stderr, "\t-v\ttest vsynced page flipping\n");

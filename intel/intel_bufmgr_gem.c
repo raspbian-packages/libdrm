@@ -149,6 +149,7 @@ typedef struct _drm_intel_bufmgr_gem {
 	unsigned int bo_reuse : 1;
 	unsigned int no_exec : 1;
 	unsigned int has_vebox : 1;
+	unsigned int has_exec_async : 1;
 	bool fenced_relocs;
 
 	struct {
@@ -194,6 +195,8 @@ struct _drm_intel_bo_gem {
 	uint32_t tiling_mode;
 	uint32_t swizzle_mode;
 	unsigned long stride;
+
+	unsigned long kflags;
 
 	time_t free_time;
 
@@ -265,20 +268,6 @@ struct _drm_intel_bo_gem {
 	 * Boolean of whether this buffer was allocated with userptr
 	 */
 	bool is_userptr;
-
-	/**
-	 * Boolean of whether this buffer can be placed in the full 48-bit
-	 * address range on gen8+.
-	 *
-	 * By default, buffers will be keep in a 32-bit range, unless this
-	 * flag is explicitly set.
-	 */
-	bool use_48b_address_range;
-
-	/**
-	 * Whether this buffer is softpinned at offset specified by the user
-	 */
-	bool is_softpin;
 
 	/**
 	 * Size in bytes of this buffer and its relocation descendents.
@@ -435,7 +424,7 @@ drm_intel_gem_dump_validation_list(drm_intel_bufmgr_gem *bufmgr_gem)
 
 		if (bo_gem->relocs == NULL && bo_gem->softpin_target == NULL) {
 			DBG("%2d: %d %s(%s)\n", i, bo_gem->gem_handle,
-			    bo_gem->is_softpin ? "*" : "",
+			    bo_gem->kflags & EXEC_OBJECT_PINNED ? "*" : "",
 			    bo_gem->name);
 			continue;
 		}
@@ -449,7 +438,7 @@ drm_intel_gem_dump_validation_list(drm_intel_bufmgr_gem *bufmgr_gem)
 			    "%d (%s)@0x%08x %08x + 0x%08x\n",
 			    i,
 			    bo_gem->gem_handle,
-			    bo_gem->is_softpin ? "*" : "",
+			    bo_gem->kflags & EXEC_OBJECT_PINNED ? "*" : "",
 			    bo_gem->name,
 			    upper_32_bits(bo_gem->relocs[j].offset),
 			    lower_32_bits(bo_gem->relocs[j].offset),
@@ -468,7 +457,7 @@ drm_intel_gem_dump_validation_list(drm_intel_bufmgr_gem *bufmgr_gem)
 			    "%d *(%s)@0x%08x %08x\n",
 			    i,
 			    bo_gem->gem_handle,
-			    bo_gem->is_softpin ? "*" : "",
+			    bo_gem->kflags & EXEC_OBJECT_PINNED ? "*" : "",
 			    bo_gem->name,
 			    target_gem->gem_handle,
 			    target_gem->name,
@@ -538,14 +527,11 @@ drm_intel_add_validate_buffer2(drm_intel_bo *bo, int need_fence)
 	drm_intel_bufmgr_gem *bufmgr_gem = (drm_intel_bufmgr_gem *)bo->bufmgr;
 	drm_intel_bo_gem *bo_gem = (drm_intel_bo_gem *)bo;
 	int index;
-	int flags = 0;
+	unsigned long flags;
 
+	flags = 0;
 	if (need_fence)
 		flags |= EXEC_OBJECT_NEEDS_FENCE;
-	if (bo_gem->use_48b_address_range)
-		flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
-	if (bo_gem->is_softpin)
-		flags |= EXEC_OBJECT_PINNED;
 
 	if (bo_gem->validate_index != -1) {
 		bufmgr_gem->exec2_objects[bo_gem->validate_index].flags |= flags;
@@ -575,12 +561,11 @@ drm_intel_add_validate_buffer2(drm_intel_bo *bo, int need_fence)
 	bufmgr_gem->exec2_objects[index].relocation_count = bo_gem->reloc_count;
 	bufmgr_gem->exec2_objects[index].relocs_ptr = (uintptr_t)bo_gem->relocs;
 	bufmgr_gem->exec2_objects[index].alignment = bo->align;
-	bufmgr_gem->exec2_objects[index].offset = bo_gem->is_softpin ?
-		bo->offset64 : 0;
-	bufmgr_gem->exec_bos[index] = bo;
-	bufmgr_gem->exec2_objects[index].flags = flags;
+	bufmgr_gem->exec2_objects[index].offset = bo->offset64;
+	bufmgr_gem->exec2_objects[index].flags = bo_gem->kflags | flags;
 	bufmgr_gem->exec2_objects[index].rsvd1 = 0;
 	bufmgr_gem->exec2_objects[index].rsvd2 = 0;
+	bufmgr_gem->exec_bos[index] = bo;
 	bufmgr_gem->exec_count++;
 }
 
@@ -674,7 +659,6 @@ drm_intel_gem_bo_busy(drm_intel_bo *bo)
 	} else {
 		return false;
 	}
-	return (ret == 0 && busy.busy);
 }
 
 static int
@@ -830,6 +814,10 @@ retry:
 		}
 
 		bo_gem->gem_handle = create.handle;
+		HASH_ADD(handle_hh, bufmgr_gem->handle_table,
+			 gem_handle, sizeof(bo_gem->gem_handle),
+			 bo_gem);
+
 		bo_gem->bo.handle = bo_gem->gem_handle;
 		bo_gem->bo.bufmgr = bufmgr;
 		bo_gem->bo.align = alignment;
@@ -842,10 +830,6 @@ retry:
 							 tiling_mode,
 							 stride))
 			goto err_free;
-
-		HASH_ADD(handle_hh, bufmgr_gem->handle_table,
-			 gem_handle, sizeof(bo_gem->gem_handle),
-			 bo_gem);
 	}
 
 	bo_gem->name = name;
@@ -855,7 +839,6 @@ retry:
 	bo_gem->used_as_reloc_target = false;
 	bo_gem->has_error = false;
 	bo_gem->reusable = true;
-	bo_gem->use_48b_address_range = false;
 
 	drm_intel_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, alignment);
 	pthread_mutex_unlock(&bufmgr_gem->lock);
@@ -1014,7 +997,6 @@ drm_intel_gem_bo_alloc_userptr(drm_intel_bufmgr *bufmgr,
 	bo_gem->used_as_reloc_target = false;
 	bo_gem->has_error = false;
 	bo_gem->reusable = false;
-	bo_gem->use_48b_address_range = false;
 
 	drm_intel_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, 0);
 	pthread_mutex_unlock(&bufmgr_gem->lock);
@@ -1162,7 +1144,6 @@ drm_intel_bo_gem_create_from_name(drm_intel_bufmgr *bufmgr,
 	bo_gem->bo.handle = open_arg.handle;
 	bo_gem->global_name = handle;
 	bo_gem->reusable = false;
-	bo_gem->use_48b_address_range = false;
 
 	HASH_ADD(handle_hh, bufmgr_gem->handle_table,
 		 gem_handle, sizeof(bo_gem->gem_handle), bo_gem);
@@ -1368,6 +1349,7 @@ drm_intel_gem_bo_unreference_final(drm_intel_bo *bo, time_t time)
 	for (i = 0; i < bo_gem->softpin_target_count; i++)
 		drm_intel_gem_bo_unreference_locked_timed(bo_gem->softpin_target[i],
 								  time);
+	bo_gem->kflags = 0;
 	bo_gem->reloc_count = 0;
 	bo_gem->used_as_reloc_target = false;
 	bo_gem->softpin_target_count = 0;
@@ -2049,7 +2031,11 @@ static void
 drm_intel_gem_bo_use_48b_address_range(drm_intel_bo *bo, uint32_t enable)
 {
 	drm_intel_bo_gem *bo_gem = (drm_intel_bo_gem *) bo;
-	bo_gem->use_48b_address_range = enable;
+
+	if (enable)
+		bo_gem->kflags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
+	else
+		bo_gem->kflags &= ~EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
 }
 
 static int
@@ -2066,7 +2052,7 @@ drm_intel_gem_bo_add_softpin_target(drm_intel_bo *bo, drm_intel_bo *target_bo)
 		return -ENOMEM;
 	}
 
-	if (!target_bo_gem->is_softpin)
+	if (!(target_bo_gem->kflags & EXEC_OBJECT_PINNED))
 		return -EINVAL;
 	if (target_bo_gem == bo_gem)
 		return -EINVAL;
@@ -2098,7 +2084,7 @@ drm_intel_gem_bo_emit_reloc(drm_intel_bo *bo, uint32_t offset,
 	drm_intel_bufmgr_gem *bufmgr_gem = (drm_intel_bufmgr_gem *)bo->bufmgr;
 	drm_intel_bo_gem *target_bo_gem = (drm_intel_bo_gem *)target_bo;
 
-	if (target_bo_gem->is_softpin)
+	if (target_bo_gem->kflags & EXEC_OBJECT_PINNED)
 		return drm_intel_gem_bo_add_softpin_target(bo, target_bo);
 	else
 		return do_bo_emit_reloc(bo, offset, target_bo, target_offset,
@@ -2282,7 +2268,7 @@ drm_intel_update_buffer_offsets2 (drm_intel_bufmgr_gem *bufmgr_gem)
 			/* If we're seeing softpinned object here it means that the kernel
 			 * has relocated our object... Indicating a programming error
 			 */
-			assert(!bo_gem->is_softpin);
+			assert(!(bo_gem->kflags & EXEC_OBJECT_PINNED));
 			DBG("BO %d (%s) migrated: 0x%08x %08x -> 0x%08x %08x\n",
 			    bo_gem->gem_handle, bo_gem->name,
 			    upper_32_bits(bo->offset64),
@@ -2373,6 +2359,7 @@ drm_intel_gem_bo_exec(drm_intel_bo *bo, int used,
 static int
 do_exec2(drm_intel_bo *bo, int used, drm_intel_context *ctx,
 	 drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
+	 int in_fence, int *out_fence,
 	 unsigned int flags)
 {
 	drm_intel_bufmgr_gem *bufmgr_gem = (drm_intel_bufmgr_gem *)bo->bufmgr;
@@ -2427,12 +2414,20 @@ do_exec2(drm_intel_bo *bo, int used, drm_intel_context *ctx,
 	else
 		i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
 	execbuf.rsvd2 = 0;
+	if (in_fence != -1) {
+		execbuf.rsvd2 = in_fence;
+		execbuf.flags |= I915_EXEC_FENCE_IN;
+	}
+	if (out_fence != NULL) {
+		*out_fence = -1;
+		execbuf.flags |= I915_EXEC_FENCE_OUT;
+	}
 
 	if (bufmgr_gem->no_exec)
 		goto skip_execution;
 
 	ret = drmIoctl(bufmgr_gem->fd,
-		       DRM_IOCTL_I915_GEM_EXECBUFFER2,
+		       DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
 		       &execbuf);
 	if (ret != 0) {
 		ret = -errno;
@@ -2447,6 +2442,9 @@ do_exec2(drm_intel_bo *bo, int used, drm_intel_context *ctx,
 		}
 	}
 	drm_intel_update_buffer_offsets2(bufmgr_gem);
+
+	if (ret == 0 && out_fence != NULL)
+		*out_fence = execbuf.rsvd2 >> 32;
 
 skip_execution:
 	if (bufmgr_gem->bufmgr.debug)
@@ -2473,7 +2471,7 @@ drm_intel_gem_bo_exec2(drm_intel_bo *bo, int used,
 		       int DR4)
 {
 	return do_exec2(bo, used, NULL, cliprects, num_cliprects, DR4,
-			I915_EXEC_RENDER);
+			-1, NULL, I915_EXEC_RENDER);
 }
 
 static int
@@ -2482,14 +2480,25 @@ drm_intel_gem_bo_mrb_exec2(drm_intel_bo *bo, int used,
 			unsigned int flags)
 {
 	return do_exec2(bo, used, NULL, cliprects, num_cliprects, DR4,
-			flags);
+			-1, NULL, flags);
 }
 
 int
 drm_intel_gem_bo_context_exec(drm_intel_bo *bo, drm_intel_context *ctx,
 			      int used, unsigned int flags)
 {
-	return do_exec2(bo, used, ctx, NULL, 0, 0, flags);
+	return do_exec2(bo, used, ctx, NULL, 0, 0, -1, NULL, flags);
+}
+
+int
+drm_intel_gem_bo_fence_exec(drm_intel_bo *bo,
+			    drm_intel_context *ctx,
+			    int used,
+			    int in_fence,
+			    int *out_fence,
+			    unsigned int flags)
+{
+	return do_exec2(bo, used, ctx, NULL, 0, 0, in_fence, out_fence, flags);
 }
 
 static int
@@ -2615,9 +2624,10 @@ drm_intel_gem_bo_set_softpin_offset(drm_intel_bo *bo, uint64_t offset)
 {
 	drm_intel_bo_gem *bo_gem = (drm_intel_bo_gem *) bo;
 
-	bo_gem->is_softpin = true;
 	bo->offset64 = offset;
 	bo->offset = offset;
+	bo_gem->kflags |= EXEC_OBJECT_PINNED;
+
 	return 0;
 }
 
@@ -2681,7 +2691,6 @@ drm_intel_bo_gem_create_from_prime(drm_intel_bufmgr *bufmgr, int prime_fd, int s
 	bo_gem->used_as_reloc_target = false;
 	bo_gem->has_error = false;
 	bo_gem->reusable = false;
-	bo_gem->use_48b_address_range = false;
 
 	memclear(get_tiling);
 	get_tiling.handle = bo_gem->gem_handle;
@@ -2736,11 +2745,12 @@ drm_intel_gem_bo_flink(drm_intel_bo *bo, uint32_t * name)
 
 		pthread_mutex_lock(&bufmgr_gem->lock);
 		if (!bo_gem->global_name) {
+			bo_gem->global_name = flink.name;
+			bo_gem->reusable = false;
+
 			HASH_ADD(name_hh, bufmgr_gem->name_table,
 				 global_name, sizeof(bo_gem->global_name),
 				 bo_gem);
-			bo_gem->global_name = flink.name;
-			bo_gem->reusable = false;
 		}
 		pthread_mutex_unlock(&bufmgr_gem->lock);
 	}
@@ -2762,6 +2772,59 @@ drm_intel_bufmgr_gem_enable_reuse(drm_intel_bufmgr *bufmgr)
 	drm_intel_bufmgr_gem *bufmgr_gem = (drm_intel_bufmgr_gem *) bufmgr;
 
 	bufmgr_gem->bo_reuse = true;
+}
+
+/**
+ * Disables implicit synchronisation before executing the bo
+ *
+ * This will cause rendering corruption unless you correctly manage explicit
+ * fences for all rendering involving this buffer - including use by others.
+ * Disabling the implicit serialisation is only required if that serialisation
+ * is too coarse (for example, you have split the buffer into many
+ * non-overlapping regions and are sharing the whole buffer between concurrent
+ * independent command streams).
+ *
+ * Note the kernel must advertise support via I915_PARAM_HAS_EXEC_ASYNC,
+ * which can be checked using drm_intel_bufmgr_can_disable_implicit_sync,
+ * or subsequent execbufs involving the bo will generate EINVAL.
+ */
+void
+drm_intel_gem_bo_disable_implicit_sync(drm_intel_bo *bo)
+{
+	drm_intel_bo_gem *bo_gem = (drm_intel_bo_gem *) bo;
+
+	bo_gem->kflags |= EXEC_OBJECT_ASYNC;
+}
+
+/**
+ * Enables implicit synchronisation before executing the bo
+ *
+ * This is the default behaviour of the kernel, to wait upon prior writes
+ * completing on the object before rendering with it, or to wait for prior
+ * reads to complete before writing into the object.
+ * drm_intel_gem_bo_disable_implicit_sync() can stop this behaviour, telling
+ * the kernel never to insert a stall before using the object. Then this
+ * function can be used to restore the implicit sync before subsequent
+ * rendering.
+ */
+void
+drm_intel_gem_bo_enable_implicit_sync(drm_intel_bo *bo)
+{
+	drm_intel_bo_gem *bo_gem = (drm_intel_bo_gem *) bo;
+
+	bo_gem->kflags &= ~EXEC_OBJECT_ASYNC;
+}
+
+/**
+ * Query whether the kernel supports disabling of its implicit synchronisation
+ * before execbuf. See drm_intel_gem_bo_disable_implicit_sync()
+ */
+int
+drm_intel_bufmgr_gem_can_disable_implicit_sync(drm_intel_bufmgr *bufmgr)
+{
+	drm_intel_bufmgr_gem *bufmgr_gem = (drm_intel_bufmgr_gem *) bufmgr;
+
+	return bufmgr_gem->has_exec_async;
 }
 
 /**
@@ -3633,6 +3696,10 @@ drm_intel_bufmgr_gem_init(int fd, int batch_size)
 	gp.param = I915_PARAM_HAS_RELAXED_FENCING;
 	ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
 	bufmgr_gem->has_relaxed_fencing = ret == 0;
+
+	gp.param = I915_PARAM_HAS_EXEC_ASYNC;
+	ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+	bufmgr_gem->has_exec_async = ret == 0;
 
 	bufmgr_gem->bufmgr.bo_alloc_userptr = check_bo_alloc_userptr;
 

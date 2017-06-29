@@ -20,7 +20,7 @@
 
 AC_PREREQ([2.63])
 AC_INIT([libdrm],
-        [2.4.74],
+        [2.4.81],
         [https://bugs.freedesktop.org/enter_bug.cgi?product=DRI],
         [libdrm])
 
@@ -28,6 +28,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
+PKG_PROG_PKG_CONFIG
 
 # Require xorg-macros minimum of 1.12 for XORG_WITH_XSLTPROC
 m4_ifndef([XORG_MACROS_VERSION],
@@ -53,17 +54,33 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 AC_FUNC_ALLOCA
 
+save_CFLAGS="$CFLAGS"
+export CFLAGS="$CFLAGS -Werror"
 AC_HEADER_MAJOR
+CFLAGS="$save_CFLAGS"
+
 AC_CHECK_HEADERS([sys/sysctl.h sys/select.h])
 
 # Initialize libtool
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
+dnl pthread-stubs is mandatory on BSD platforms, due to the nature of the
+dnl project. Even then there's a notable issue as described in the project README
+case "$host_os" in
+linux* | cygwin* | darwin* | solaris* | *-gnu* | gnu*)
+    pthread_stubs_possible="no"
+    ;;
+* )
+    pthread_stubs_possible="yes"
+    ;;
+esac
 
-PKG_CHECK_MODULES(PTHREADSTUBS, pthread-stubs)
-AC_SUBST(PTHREADSTUBS_CFLAGS)
-AC_SUBST(PTHREADSTUBS_LIBS)
+if test "x$pthread_stubs_possible" = xyes; then
+    PKG_CHECK_MODULES(PTHREADSTUBS, pthread-stubs >= 0.4)
+    AC_SUBST(PTHREADSTUBS_CFLAGS)
+    AC_SUBST(PTHREADSTUBS_LIBS)
+fi
 
 pkgconfigdir=${libdir}/pkgconfig
 AC_SUBST(pkgconfigdir)
@@ -450,13 +467,6 @@ if test "x$CAIRO" = xyes; then
 fi
 AC_MSG_RESULT([$CAIRO])
 AM_CONDITIONAL(HAVE_CAIRO, [test "x$CAIRO" = xyes])
-
-# For enumerating devices in test case
-PKG_CHECK_MODULES(LIBUDEV, libudev, [HAVE_LIBUDEV=yes], [HAVE_LIBUDEV=no])
-if test "x$HAVE_LIBUDEV" = xyes; then
-   	AC_DEFINE(HAVE_LIBUDEV, 1, [Have libudev support])
-fi
-AM_CONDITIONAL(HAVE_LIBUDEV, [test "x$HAVE_LIBUDEV" = xyes])
 
 # xsltproc for docbook manpages
 AC_ARG_ENABLE([manpages],

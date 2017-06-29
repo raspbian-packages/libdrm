@@ -126,7 +126,7 @@ am_etnaviv_cmd_stream_test_OBJECTS =  \
 	etnaviv_cmd_stream_test.$(OBJEXT)
 etnaviv_cmd_stream_test_OBJECTS =  \
 	$(am_etnaviv_cmd_stream_test_OBJECTS)
-etnaviv_cmd_stream_test_DEPENDENCIES =  \
+etnaviv_cmd_stream_test_DEPENDENCIES = $(top_builddir)/libdrm.la \
 	$(top_builddir)/etnaviv/libdrm_etnaviv.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -244,8 +244,6 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LIBUDEV_CFLAGS = @LIBUDEV_CFLAGS@
-LIBUDEV_LIBS = @LIBUDEV_LIBS@
 LIB_MAN_DIR = @LIB_MAN_DIR@
 LIB_MAN_SUFFIX = @LIB_MAN_SUFFIX@
 LIPO = @LIPO@
@@ -337,6 +335,7 @@ pkgconfigdir = @pkgconfigdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -363,6 +362,7 @@ etnaviv_2d_test_SOURCES = \
 	write_bmp.h
 
 etnaviv_cmd_stream_test_LDADD = \
+	$(top_builddir)/libdrm.la \
 	$(top_builddir)/etnaviv/libdrm_etnaviv.la
 
 etnaviv_cmd_stream_test_SOURCES = \
