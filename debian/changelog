@@ -1,9 +1,15 @@
-libdrm (2.4.82-1+rpi1) buster-staging; urgency=medium
+libdrm (2.4.83-1+rpi1) buster-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Wed, 09 Aug 2017 02:27:30 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Thu, 12 Oct 2017 13:51:24 +0000
+
+libdrm (2.4.83-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 03 Oct 2017 11:15:26 +0300
 
 libdrm (2.4.82-1) unstable; urgency=medium
 
