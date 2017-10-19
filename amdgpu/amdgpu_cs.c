@@ -615,6 +615,18 @@ int amdgpu_cs_destroy_syncobj(amdgpu_device_handle dev,
 	return drmSyncobjDestroy(dev->fd, handle);
 }
 
+int amdgpu_cs_syncobj_wait(amdgpu_device_handle dev,
+			   uint32_t *handles, unsigned num_handles,
+			   int64_t timeout_nsec, unsigned flags,
+			   uint32_t *first_signaled)
+{
+	if (NULL == dev)
+		return -EINVAL;
+
+	return drmSyncobjWait(dev->fd, handles, num_handles, timeout_nsec,
+			      flags, first_signaled);
+}
+
 int amdgpu_cs_export_syncobj(amdgpu_device_handle dev,
 			     uint32_t handle,
 			     int *shared_fd)
@@ -633,6 +645,26 @@ int amdgpu_cs_import_syncobj(amdgpu_device_handle dev,
 		return -EINVAL;
 
 	return drmSyncobjFDToHandle(dev->fd, shared_fd, handle);
+}
+
+int amdgpu_cs_syncobj_export_sync_file(amdgpu_device_handle dev,
+				       uint32_t syncobj,
+				       int *sync_file_fd)
+{
+	if (NULL == dev)
+		return -EINVAL;
+
+	return drmSyncobjExportSyncFile(dev->fd, syncobj, sync_file_fd);
+}
+
+int amdgpu_cs_syncobj_import_sync_file(amdgpu_device_handle dev,
+				       uint32_t syncobj,
+				       int sync_file_fd)
+{
+	if (NULL == dev)
+		return -EINVAL;
+
+	return drmSyncobjImportSyncFile(dev->fd, syncobj, sync_file_fd);
 }
 
 int amdgpu_cs_submit_raw(amdgpu_device_handle dev,
@@ -680,4 +712,26 @@ void amdgpu_cs_chunk_fence_to_dep(struct amdgpu_cs_fence *fence,
 	dep->ring = fence->ring;
 	dep->ctx_id = fence->context->id;
 	dep->handle = fence->fence;
+}
+
+int amdgpu_cs_fence_to_handle(amdgpu_device_handle dev,
+			      struct amdgpu_cs_fence *fence,
+			      uint32_t what,
+			      uint32_t *out_handle)
+{
+	union drm_amdgpu_fence_to_handle fth = {0};
+	int r;
+
+	fth.in.fence.ctx_id = fence->context->id;
+	fth.in.fence.ip_type = fence->ip_type;
+	fth.in.fence.ip_instance = fence->ip_instance;
+	fth.in.fence.ring = fence->ring;
+	fth.in.fence.seq_no = fence->fence;
+	fth.in.what = what;
+
+	r = drmCommandWriteRead(dev->fd, DRM_AMDGPU_FENCE_TO_HANDLE,
+				&fth, sizeof(fth));
+	if (r == 0)
+		*out_handle = fth.out.handle;
+	return r;
 }

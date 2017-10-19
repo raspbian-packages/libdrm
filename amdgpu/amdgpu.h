@@ -1354,6 +1354,26 @@ int amdgpu_cs_destroy_syncobj(amdgpu_device_handle dev,
 			      uint32_t syncobj);
 
 /**
+ *  Wait for one or all sync objects to signal.
+ *
+ * \param   dev	    - \c [in] self-explanatory
+ * \param   handles - \c [in] array of sync object handles
+ * \param   num_handles - \c [in] self-explanatory
+ * \param   timeout_nsec - \c [in] self-explanatory
+ * \param   flags   - \c [in] a bitmask of DRM_SYNCOBJ_WAIT_FLAGS_*
+ * \param   first_signaled - \c [in] self-explanatory
+ *
+ * \return   0 on success\n
+ *          -ETIME - Timeout
+ *          <0 - Negative POSIX Error code
+ *
+ */
+int amdgpu_cs_syncobj_wait(amdgpu_device_handle dev,
+			   uint32_t *handles, unsigned num_handles,
+			   int64_t timeout_nsec, unsigned flags,
+			   uint32_t *first_signaled);
+
+/**
  *  Export kernel sync object to shareable fd.
  *
  * \param   dev	       - \c [in] device handle
@@ -1381,6 +1401,50 @@ int amdgpu_cs_export_syncobj(amdgpu_device_handle dev,
 int amdgpu_cs_import_syncobj(amdgpu_device_handle dev,
 			     int shared_fd,
 			     uint32_t *syncobj);
+
+/**
+ *  Export kernel sync object to a sync_file.
+ *
+ * \param   dev	       - \c [in] device handle
+ * \param   syncobj    - \c [in] sync object handle
+ * \param   sync_file_fd - \c [out] sync_file file descriptor.
+ *
+ * \return   0 on success\n
+ *          <0 - Negative POSIX Error code
+ *
+ */
+int amdgpu_cs_syncobj_export_sync_file(amdgpu_device_handle dev,
+				       uint32_t syncobj,
+				       int *sync_file_fd);
+
+/**
+ *  Import kernel sync object from a sync_file.
+ *
+ * \param   dev	       - \c [in] device handle
+ * \param   syncobj    - \c [in] sync object handle
+ * \param   sync_file_fd - \c [in] sync_file file descriptor.
+ *
+ * \return   0 on success\n
+ *          <0 - Negative POSIX Error code
+ *
+ */
+int amdgpu_cs_syncobj_import_sync_file(amdgpu_device_handle dev,
+				       uint32_t syncobj,
+				       int sync_file_fd);
+
+/**
+ * Export an amdgpu fence as a handle (syncobj or fd).
+ *
+ * \param what		AMDGPU_FENCE_TO_HANDLE_GET_{SYNCOBJ, FD}
+ * \param out_handle	returned handle
+ *
+ * \return   0 on success\n
+ *          <0 - Negative POSIX Error code
+ */
+int amdgpu_cs_fence_to_handle(amdgpu_device_handle dev,
+			      struct amdgpu_cs_fence *fence,
+			      uint32_t what,
+			      uint32_t *out_handle);
 
 /**
  *  Submit raw command submission to kernel
