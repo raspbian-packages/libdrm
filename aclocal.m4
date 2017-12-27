@@ -722,10 +722,6 @@ fi])
 # Test for the ability of xmlto to generate a text target
 have_xmlto_text=no
 cat > conftest.xml << "EOF"
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
-                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<book id="saver">
-</book>
 EOF
 AS_IF([test "$have_xmlto" = yes],
       [AS_IF([$XMLTO --skip-validation txt conftest.xml >/dev/null 2>&1],
