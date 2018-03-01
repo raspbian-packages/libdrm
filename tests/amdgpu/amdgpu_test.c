@@ -167,7 +167,7 @@ static Suites_Active_Status suites_active_stat[] = {
 		},
 		{
 			.pName = VM_TESTS_STR,
-			.pActive = always_active,
+			.pActive = suite_vm_tests_enable,
 		},
 };
 
@@ -243,7 +243,6 @@ static const char options[]   = "hlrps:t:b:d:f";
 static int amdgpu_open_devices(int open_render_node)
 {
 	drmDevicePtr devices[MAX_CARDS_SUPPORTED];
-	int ret;
 	int i;
 	int drm_node;
 	int amd_index = 0;

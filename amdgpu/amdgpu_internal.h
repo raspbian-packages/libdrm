@@ -53,8 +53,6 @@ struct amdgpu_bo_va_hole {
 };
 
 struct amdgpu_bo_va_mgr {
-	/* the start virtual address */
-	uint64_t va_offset;
 	uint64_t va_max;
 	struct list_head va_holes;
 	pthread_mutex_t bo_va_mutex;
@@ -75,6 +73,7 @@ struct amdgpu_device {
 	int flink_fd;
 	unsigned major_version;
 	unsigned minor_version;
+	uint32_t address32_hi;
 
 	char *marketing_name;
 	/** List of buffer handles. Protected by bo_table_mutex. */
