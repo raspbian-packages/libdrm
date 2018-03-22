@@ -57,7 +57,7 @@ drm_private void amdgpu_vamgr_init(struct amdgpu_bo_va_mgr *mgr, uint64_t start,
 	pthread_mutex_init(&mgr->bo_va_mutex, NULL);
 	pthread_mutex_lock(&mgr->bo_va_mutex);
 	n = calloc(1, sizeof(struct amdgpu_bo_va_hole));
-	n->size = mgr->va_max;
+	n->size = mgr->va_max - start;
 	n->offset = start;
 	list_add(&n->list, &mgr->va_holes);
 	pthread_mutex_unlock(&mgr->bo_va_mutex);
@@ -79,6 +79,7 @@ amdgpu_vamgr_find_va(struct amdgpu_bo_va_mgr *mgr, uint64_t size,
 {
 	struct amdgpu_bo_va_hole *hole, *n;
 	uint64_t offset = 0, waste = 0;
+
 
 	alignment = MAX2(alignment, mgr->va_alignment);
 	size = ALIGN(size, mgr->va_alignment);
@@ -200,10 +201,21 @@ int amdgpu_va_range_alloc(amdgpu_device_handle dev,
 {
 	struct amdgpu_bo_va_mgr *vamgr;
 
-	if (flags & AMDGPU_VA_RANGE_32_BIT)
-		vamgr = &dev->vamgr_32;
-	else
-		vamgr = &dev->vamgr;
+	/* Clear the flag when the high VA manager is not initialized */
+	if (flags & AMDGPU_VA_RANGE_HIGH && !dev->vamgr_high_32.va_max)
+		flags &= ~AMDGPU_VA_RANGE_HIGH;
+
+	if (flags & AMDGPU_VA_RANGE_HIGH) {
+		if (flags & AMDGPU_VA_RANGE_32_BIT)
+			vamgr = &dev->vamgr_high_32;
+		else
+			vamgr = &dev->vamgr_high;
+	} else {
+		if (flags & AMDGPU_VA_RANGE_32_BIT)
+			vamgr = &dev->vamgr_32;
+		else
+			vamgr = &dev->vamgr;
+	}
 
 	va_base_alignment = MAX2(va_base_alignment, vamgr->va_alignment);
 	size = ALIGN(size, vamgr->va_alignment);
@@ -214,7 +226,10 @@ int amdgpu_va_range_alloc(amdgpu_device_handle dev,
 	if (!(flags & AMDGPU_VA_RANGE_32_BIT) &&
 	    (*va_base_allocated == AMDGPU_INVALID_VA_ADDRESS)) {
 		/* fallback to 32bit address */
-		vamgr = &dev->vamgr_32;
+		if (flags & AMDGPU_VA_RANGE_HIGH)
+			vamgr = &dev->vamgr_high_32;
+		else
+			vamgr = &dev->vamgr_32;
 		*va_base_allocated = amdgpu_vamgr_find_va(vamgr, size,
 					va_base_alignment, va_base_required);
 	}

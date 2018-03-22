@@ -21,7 +21,7 @@
 project(
   'libdrm',
   ['c'],
-  version : '2.4.89',
+  version : '2.4.91',
   license : 'MIT',
   meson_version : '>= 0.43',
   default_options : ['buildtype=debugoptimized', 'c_std=gnu99'],
@@ -32,13 +32,10 @@ pkg = import('pkgconfig')
 with_udev = get_option('udev')
 with_freedreno_kgsl = get_option('freedreno-kgsl')
 with_install_tests = get_option('install-test-programs')
-with_cairo_tests = get_option('cairo-tests')
-with_valgrind = get_option('valgrind')
 
 config = configuration_data()
 
-# TODO: openbsd is guess, the others are correct
-if ['freebsd', 'dragonfly', 'netbsd', 'openbsd'].contains(host_machine.system())
+if ['freebsd', 'dragonfly', 'netbsd'].contains(host_machine.system())
   dep_pthread_stubs = dependency('pthread-stubs', version : '>= 0.4')
 else
   dep_pthread_stubs = []
@@ -226,8 +223,22 @@ endforeach
 
 dep_pciaccess = dependency('pciaccess', version : '>= 0.10', required : with_intel)
 dep_cunit = dependency('cunit', version : '>= 2.1', required : false)
-dep_cairo = dependency('cairo', required : with_cairo_tests == 'true')
-dep_valgrind = dependency('valgrind', required : with_valgrind == 'true')
+_cairo_tests = get_option('cairo-tests')
+if _cairo_tests != 'false'
+  dep_cairo = dependency('cairo', required : _cairo_tests == 'true')
+  with_cairo_tests = dep_cairo.found()
+else
+  dep_cairo = []
+  with_cairo_tests = false
+endif
+_valgrind = get_option('valgrind')
+if _valgrind != 'false'
+  dep_valgrind = dependency('valgrind', required : _valgrind == 'true')
+  with_valgrind = dep_valgrind.found()
+else
+  dep_valgrind = []
+  with_valgrind = false
+endif
 
 with_man_pages = get_option('man-pages')
 prog_xslt = find_program('xsltproc', required : with_man_pages == 'true')
@@ -259,8 +270,8 @@ foreach t : [
              [with_radeon, 'RADEON'],
              [with_vc4, 'VC4'],
              [with_vmwgfx, 'VMWGFX'],
-             [dep_cairo.found(), 'CAIRO'],
-             [dep_valgrind.found(), 'VALGRIND'],
+             [with_cairo_tests, 'CAIRO'],
+             [with_valgrind, 'VALGRIND'],
             ]
   config.set10('HAVE_@0@'.format(t[1]), t[0])
 endforeach
@@ -321,6 +332,9 @@ pkg.generate(
   description : 'Userspace interface to kernel DRM services',
 )
 
+env_test = environment()
+env_test.set('NM', find_program('nm').path())
+
 if with_libkms
   subdir('libkms')
 endif
@@ -359,3 +373,20 @@ if with_man_pages
 endif
 subdir('data')
 subdir('tests')
+
+message('')
+message('@0@ will be compiled with:'.format(meson.project_name()))
+message('')
+message('  libkms         @0@'.format(with_libkms))
+message('  Intel API      @0@'.format(with_intel))
+message('  vmwgfx API     @0@'.format(with_vmwgfx))
+message('  Radeon API     @0@'.format(with_radeon))
+message('  AMDGPU API     @0@'.format(with_amdgpu))
+message('  Nouveau API    @0@'.format(with_nouveau))
+message('  OMAP API       @0@'.format(with_omap))
+message('  EXYNOS API     @0@'.format(with_exynos))
+message('  Freedreno API  @0@ (kgsl: @1@)'.format(with_freedreno, with_freedreno_kgsl))
+message('  Tegra API      @0@'.format(with_tegra))
+message('  VC4 API        @0@'.format(with_vc4))
+message('  Etnaviv API    @0@'.format(with_etnaviv))
+message('')
