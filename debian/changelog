@@ -1,9 +1,20 @@
-libdrm (2.4.91-2+rpi1) buster-staging; urgency=medium
+libdrm (2.4.92-1+rpi1) buster-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Thu, 22 Mar 2018 23:19:22 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Thu, 24 May 2018 13:45:52 +0000
+
+libdrm (2.4.92-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Update libdrm-freedreno1.symbols and shlibs.
+  * control: Update to my Debian address.
+  * Update Vcs-* URLs to point at salsa.debian.org.
+  * Bump debhelper compat to 11.
+  * Bump standards version to 4.1.4.
+
+ -- Andreas Boll <aboll@debian.org>  Fri, 18 May 2018 14:32:46 +0200
 
 libdrm (2.4.91-2) unstable; urgency=medium
 
