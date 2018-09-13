@@ -1,9 +1,20 @@
-libdrm (2.4.93-1+rpi1) buster-staging; urgency=medium
+libdrm (2.4.94-1+rpi1) buster-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Wed, 22 Aug 2018 15:03:17 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Thu, 13 Sep 2018 20:10:51 +0000
+
+libdrm (2.4.94-1) unstable; urgency=medium
+
+  [ Guido Günther ]
+  * Enable etnaviv on arm64 (Closes: #906915)
+
+  [ Timo Aaltonen ]
+  * New upstream release. (LP: #1789924)
+  * Update libdrm-amdgpu1.symbols and shlibs.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 30 Aug 2018 21:18:04 +0300
 
 libdrm (2.4.93-1) unstable; urgency=medium
 
