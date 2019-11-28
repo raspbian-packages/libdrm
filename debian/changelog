@@ -1,9 +1,41 @@
-libdrm (2.4.99-1+rpi1) bullseye-staging; urgency=medium
+libdrm (2.4.100-4+rpi1) bullseye-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Thu, 22 Aug 2019 16:14:59 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Thu, 28 Nov 2019 13:48:56 +0000
+
+libdrm (2.4.100-4) unstable; urgency=medium
+
+  * rules: Override dh_missing.
+  * rules: Include additional test binaries on arm. (Closes: #944752)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 21 Nov 2019 14:47:00 +0200
+
+libdrm (2.4.100-3) unstable; urgency=medium
+
+  * Revert dropping libdrm-tests, since the package ended up in NEW
+    anyway.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 07 Nov 2019 09:19:11 +0200
+
+libdrm (2.4.100-2) unstable; urgency=medium
+
+  * control, rules: Disable libdrm-tests, 2.4.100 is needed for mesa 19.3
+    now and not after waiting for the NEW queue to clear.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 06 Nov 2019 20:04:53 +0200
+
+libdrm (2.4.100-1) experimental; urgency=medium
+
+  [ Timo Aaltonen ]
+  * New upstream release. (Closes: #943777)
+  * symbols: Updated.
+
+  [ Rohan Garg ]
+  * Add a libdrm-tests package. (Closes: #868898)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 31 Oct 2019 23:27:08 +0200
 
 libdrm (2.4.99-1) unstable; urgency=medium
 

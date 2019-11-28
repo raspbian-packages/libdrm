@@ -78,6 +78,21 @@ Description: Userspace interface to kernel DRM services -- common files
  .
  This package provides common files for libdrm.
 
+Package: libdrm-tests
+Depends:
+ libdrm2 (= ${binary:Version}),
+ ${shlibs:Depends},
+ ${misc:Depends}
+Architecture: any
+Description: Testing tools from the libdrm project
+ This library implements the userspace interface to the kernel DRM
+ services.  DRM stands for "Direct Rendering Manager", which is the
+ kernelspace portion of the "Direct Rendering Infrastructure" (DRI).
+ The DRI is currently used on Linux to provide hardware-accelerated
+ OpenGL drivers.
+ .
+ This package contains a variety of tools for testing from the libdrm project.
+
 Package: libdrm2-udeb
 Package-Type: udeb
 Section: debian-installer
