@@ -112,6 +112,7 @@ libdrm.so.2 libdrm2 #MINVER#
  drmModeFreeConnector@Base 2.4.3
  drmModeFreeCrtc@Base 2.4.3
  drmModeFreeEncoder@Base 2.4.3
+ drmModeFreeFB2@Base 2.4.101
  drmModeFreeFB@Base 2.4.3
  drmModeFreeModeInfo@Base 2.4.3
  drmModeFreeObjectProperties@Base 2.4.36
@@ -124,6 +125,7 @@ libdrm.so.2 libdrm2 #MINVER#
  drmModeGetConnectorCurrent@Base 2.4.61
  drmModeGetCrtc@Base 2.4.3
  drmModeGetEncoder@Base 2.4.3
+ drmModeGetFB2@Base 2.4.101
  drmModeGetFB@Base 2.4.3
  drmModeGetLease@Base 2.4.89
  drmModeGetPlane@Base 2.4.30
@@ -182,6 +184,7 @@ libdrm.so.2 libdrm2 #MINVER#
  drmSyncobjHandleToFD@Base 2.4.82
  drmSyncobjImportSyncFile@Base 2.4.82
  drmSyncobjQuery@Base 2.4.99
+ drmSyncobjQuery2@Base 2.4.101
  drmSyncobjReset@Base 2.4.89
  drmSyncobjSignal@Base 2.4.89
  drmSyncobjTimelineSignal@Base 2.4.99

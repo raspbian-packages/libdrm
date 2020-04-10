@@ -21,7 +21,7 @@
 project(
   'libdrm',
   ['c'],
-  version : '2.4.100',
+  version : '2.4.101',
   license : 'MIT',
   meson_version : '>= 0.43',
   default_options : ['buildtype=debugoptimized', 'c_std=gnu99'],
@@ -44,14 +44,18 @@ dep_threads = dependency('threads')
 
 cc = meson.get_compiler('c')
 
+symbols_check = find_program('symbols-check.py')
+prog_nm = find_program('nm')
+
 # Check for atomics
 intel_atomics = false
 lib_atomics = false
 
 dep_atomic_ops = dependency('atomic_ops', required : false)
-if cc.compiles('''
+if cc.links('''
     int atomic_add(int *i) { return __sync_add_and_fetch (i, 1); }
     int atomic_cmpxchg(int *i, int j, int k) { return __sync_val_compare_and_swap (i, j, k); }
+    int main() { }
     ''',
     name : 'Intel Atomics')
   intel_atomics = true
@@ -183,7 +187,7 @@ dep_m = cc.find_library('m', required : false)
 # FreeBSD requires sys/types.h for sys/sysctl.h, add it as part of the
 # includes when checking for headers.
 foreach header : ['sys/sysctl.h', 'sys/select.h', 'alloca.h']
-  config.set('HAVE_' + header.underscorify().to_upper(),
+  config.set10('HAVE_' + header.underscorify().to_upper(),
     cc.compiles('#include <sys/types.h>\n#include <@0@>'.format(header), name : '@0@ works'.format(header)))
 endforeach
 if (cc.has_header_symbol('sys/sysmacros.h', 'major') and
@@ -281,7 +285,7 @@ config_file = configure_file(
   configuration : config,
   output : 'config.h',
 )
-add_project_arguments('-include', 'config.h', language : 'c')
+add_project_arguments('-include', '@0@'.format(config_file), language : 'c')
 
 inc_root = include_directories('.')
 inc_drm = include_directories('include/drm')
@@ -299,6 +303,16 @@ libdrm = shared_library(
   include_directories : inc_drm,
   version : '2.4.0',
   install : true,
+)
+
+test(
+  'core-symbols-check',
+  symbols_check,
+  args : [
+    '--lib', libdrm,
+    '--symbols-file', files('core-symbols.txt'),
+    '--nm', prog_nm.path(),
+  ],
 )
 
 ext_libdrm = declare_dependency(
@@ -330,9 +344,6 @@ pkg.generate(
   version : meson.project_version(),
   description : 'Userspace interface to kernel DRM services',
 )
-
-env_test = environment()
-env_test.set('NM', find_program('nm').path())
 
 if with_libkms
   subdir('libkms')

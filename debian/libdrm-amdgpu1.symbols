@@ -43,6 +43,7 @@ libdrm_amdgpu.so.1 libdrm-amdgpu1 #MINVER#
  amdgpu_cs_syncobj_import_sync_file2@Base 2.4.99
  amdgpu_cs_syncobj_import_sync_file@Base 2.4.84
  amdgpu_cs_syncobj_query@Base 2.4.99
+ amdgpu_cs_syncobj_query2@Base 2.4.101
  amdgpu_cs_syncobj_reset@Base 2.4.89
  amdgpu_cs_syncobj_signal@Base 2.4.89
  amdgpu_cs_syncobj_timeline_signal@Base 2.4.99

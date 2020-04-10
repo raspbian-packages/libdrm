@@ -51,9 +51,10 @@
 #include <errno.h>
 #include <poll.h>
 #include <sys/time.h>
-#ifdef HAVE_SYS_SELECT_H
+#if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
+#include <math.h>
 
 #include "xf86drm.h"
 #include "xf86drmMode.h"
@@ -132,6 +133,12 @@ static inline int64_t U642I64(uint64_t val)
 	return (int64_t)*((int64_t *)&val);
 }
 
+static float mode_vrefresh(drmModeModeInfo *mode)
+{
+	return  mode->clock * 1000.00
+			/ (mode->htotal * mode->vtotal);
+}
+
 #define bit_name_fn(res)					\
 const char * res##_str(int type) {				\
 	unsigned int i;						\
@@ -207,11 +214,12 @@ static void dump_encoders(struct device *dev)
 	printf("\n");
 }
 
-static void dump_mode(drmModeModeInfo *mode)
+static void dump_mode(drmModeModeInfo *mode, int index)
 {
-	printf("  %s %d %d %d %d %d %d %d %d %d %d",
+	printf("  #%i %s %.2f %d %d %d %d %d %d %d %d %d",
+	       index,
 	       mode->name,
-	       mode->vrefresh,
+	       mode_vrefresh(mode),
 	       mode->hdisplay,
 	       mode->hsync_start,
 	       mode->hsync_end,
@@ -446,10 +454,10 @@ static void dump_connectors(struct device *dev)
 
 		if (connector->count_modes) {
 			printf("  modes:\n");
-			printf("\tname refresh (Hz) hdisp hss hse htot vdisp "
+			printf("\tindex name refresh (Hz) hdisp hss hse htot vdisp "
 			       "vss vse vtot)\n");
 			for (j = 0; j < connector->count_modes; j++)
-				dump_mode(&connector->modes[j]);
+				dump_mode(&connector->modes[j], j);
 		}
 
 		if (_connector->props) {
@@ -481,7 +489,7 @@ static void dump_crtcs(struct device *dev)
 		       crtc->buffer_id,
 		       crtc->x, crtc->y,
 		       crtc->width, crtc->height);
-		dump_mode(&crtc->mode);
+		dump_mode(&crtc->mode, 0);
 
 		if (_crtc->props) {
 			printf("  props:\n");
@@ -795,7 +803,7 @@ struct pipe_arg {
 	uint32_t crtc_id;
 	char mode_str[64];
 	char format_str[5];
-	unsigned int vrefresh;
+	float vrefresh;
 	unsigned int fourcc;
 	drmModeModeInfo *mode;
 	struct crtc *crtc;
@@ -822,7 +830,7 @@ struct plane_arg {
 
 static drmModeModeInfo *
 connector_find_mode(struct device *dev, uint32_t con_id, const char *mode_str,
-        const unsigned int vrefresh)
+	const float vrefresh)
 {
 	drmModeConnector *connector;
 	drmModeModeInfo *mode;
@@ -832,16 +840,27 @@ connector_find_mode(struct device *dev, uint32_t con_id, const char *mode_str,
 	if (!connector || !connector->count_modes)
 		return NULL;
 
+	/* Pick by Index */
+	if (mode_str[0] == '#') {
+		int index = atoi(mode_str + 1);
+
+		if (index >= connector->count_modes || index < 0)
+			return NULL;
+		return &connector->modes[index];
+	}
+
+	/* Pick by Name */
 	for (i = 0; i < connector->count_modes; i++) {
 		mode = &connector->modes[i];
 		if (!strcmp(mode->name, mode_str)) {
-			/* If the vertical refresh frequency is not specified then return the
-			 * first mode that match with the name. Else, return the mode that match
-			 * the name and the specified vertical refresh frequency.
+			/* If the vertical refresh frequency is not specified
+			 * then return the first mode that match with the name.
+			 * Else, return the mode that match the name and
+			 * the specified vertical refresh frequency.
 			 */
 			if (vrefresh == 0)
 				return mode;
-			else if (mode->vrefresh == vrefresh)
+			else if (fabs(mode_vrefresh(mode) - vrefresh) < 0.005)
 				return mode;
 		}
 	}
@@ -907,7 +926,13 @@ static int pipe_find_crtc_and_mode(struct device *dev, struct pipe_arg *pipe)
 		mode = connector_find_mode(dev, pipe->con_ids[i],
 					   pipe->mode_str, pipe->vrefresh);
 		if (mode == NULL) {
-			fprintf(stderr,
+			if (pipe->vrefresh)
+				fprintf(stderr,
+				"failed to find mode "
+				"\"%s-%.2fHz\" for connector %s\n",
+				pipe->mode_str, pipe->vrefresh, pipe->cons[i]);
+			else
+				fprintf(stderr,
 				"failed to find mode \"%s\" for connector %s\n",
 				pipe->mode_str, pipe->cons[i]);
 			return -EINVAL;
@@ -1393,8 +1418,8 @@ static void atomic_set_mode(struct device *dev, struct pipe_arg *pipes, unsigned
 		if (pipe->mode == NULL)
 			continue;
 
-		printf("setting mode %s-%dHz on connectors ",
-		       pipe->mode_str, pipe->mode->vrefresh);
+		printf("setting mode %s-%.2fHz on connectors ",
+		       pipe->mode->name, mode_vrefresh(pipe->mode));
 		for (j = 0; j < pipe->num_cons; ++j) {
 			printf("%s, ", pipe->cons[j]);
 			add_property(dev, pipe->con_ids[j], "CRTC_ID", pipe->crtc->crtc->crtc_id);
@@ -1476,8 +1501,9 @@ static void set_mode(struct device *dev, struct pipe_arg *pipes, unsigned int co
 		if (pipe->mode == NULL)
 			continue;
 
-		printf("setting mode %s-%dHz@%s on connectors ",
-		       pipe->mode_str, pipe->mode->vrefresh, pipe->format_str);
+		printf("setting mode %s-%.2fHz@%s on connectors ",
+		       pipe->mode->name, mode_vrefresh(pipe->mode),
+		       pipe->format_str);
 		for (j = 0; j < pipe->num_cons; ++j)
 			printf("%s, ", pipe->cons[j]);
 		printf("crtc %d\n", pipe->crtc->crtc->crtc_id);
@@ -1695,6 +1721,8 @@ static int parse_connector(struct pipe_arg *pipe, const char *arg)
 		return -1;
 
 	/* Parse the remaining parameters. */
+	if (!endp)
+		return -1;
 	if (*endp == '@') {
 		arg = endp + 1;
 		pipe->crtc_id = strtoul(arg, &endp, 10);
@@ -1713,7 +1741,7 @@ static int parse_connector(struct pipe_arg *pipe, const char *arg)
 	pipe->mode_str[len] = '\0';
 
 	if (*p == '-') {
-		pipe->vrefresh = strtoul(p + 1, &endp, 10);
+		pipe->vrefresh = strtof(p + 1, &endp);
 		p = endp;
 	}
 
@@ -1821,7 +1849,7 @@ static void usage(char *name)
 
 	fprintf(stderr, "\n Test options:\n\n");
 	fprintf(stderr, "\t-P <plane_id>@<crtc_id>:<w>x<h>[+<x>+<y>][*<scale>][@<format>]\tset a plane\n");
-	fprintf(stderr, "\t-s <connector_id>[,<connector_id>][@<crtc_id>]:<mode>[-<vrefresh>][@<format>]\tset a mode\n");
+	fprintf(stderr, "\t-s <connector_id>[,<connector_id>][@<crtc_id>]:[#<mode index>]<mode>[-<vrefresh>][@<format>]\tset a mode\n");
 	fprintf(stderr, "\t-C\ttest hw cursor\n");
 	fprintf(stderr, "\t-v\ttest vsynced page flipping\n");
 	fprintf(stderr, "\t-w <obj_id>:<prop_name>:<value>\tset property\n");
