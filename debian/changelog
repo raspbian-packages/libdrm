@@ -1,9 +1,16 @@
-libdrm (2.4.101-1+rpi1) bullseye-staging; urgency=medium
+libdrm (2.4.101-2+rpi1) bullseye-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Fri, 10 Apr 2020 03:32:35 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Fri, 24 Apr 2020 15:57:28 +0000
+
+libdrm (2.4.101-2) unstable; urgency=medium
+
+  * fix-realpath-vs-firefox.diff: Fix webgl on intel with firefox.
+    (Closes: #956665) (LP: #1872586)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 14 Apr 2020 16:32:57 +0300
 
 libdrm (2.4.101-1) unstable; urgency=medium
 
