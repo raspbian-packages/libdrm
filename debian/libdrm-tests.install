@@ -1,3 +1,4 @@
+usr/bin/drmdevice
 usr/bin/modetest
 usr/bin/vbltest
 usr/bin/kms-steal-crtc
