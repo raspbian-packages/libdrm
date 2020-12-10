@@ -2996,8 +2996,7 @@ static char *drmGetMinorNameForFD(int fd, int type)
     return strdup(name);
 #else
     struct stat sbuf;
-    char *buf = NULL;
-    int len = 0;
+    char buf[PATH_MAX + 1];
     const char *dev_name = drmGetDeviceName(type);
     unsigned int maj, min;
     int n;
@@ -3014,18 +3013,11 @@ static char *drmGetMinorNameForFD(int fd, int type)
     if (!dev_name)
         return NULL;
 
-    len = snprintf(NULL, 0, dev_name, DRM_DIR_NAME, min);
-    if (len < 0)
+    n = snprintf(buf, sizeof(buf), dev_name, DRM_DIR_NAME, min);
+    if (n == -1 || n >= sizeof(buf))
         return NULL;
-    len++;
-    buf = malloc(len);
-    n = snprintf(buf, len, dev_name, DRM_DIR_NAME, min);
-    if (n == -1 || n >= len) {
-        free(buf);
-        return NULL;
-    }
 
-    return buf;
+    return strdup(buf);
 #endif
 }
 
@@ -3971,30 +3963,17 @@ process_device(drmDevicePtr *device, const char *d_name,
                bool fetch_deviceinfo, uint32_t flags)
 {
     struct stat sbuf;
-    char *node = NULL;
+    char node[PATH_MAX + 1];
     int node_type, subsystem_type;
-    int len = 0, n, ret = 0;
     unsigned int maj, min;
 
     node_type = drmGetNodeType(d_name);
     if (node_type < 0)
         return -1;
 
-    len = snprintf(NULL, 0, "%s/%s", DRM_DIR_NAME, d_name);
-    if (len < 0)
-      return -1;
-    len++;
-    node = malloc(len);
-    n = snprintf(node, len, "%s/%s", DRM_DIR_NAME, d_name);
-    if (n == -1 || n >= len) {
-        free(node);
+    snprintf(node, PATH_MAX, "%s/%s", DRM_DIR_NAME, d_name);
+    if (stat(node, &sbuf))
         return -1;
-    }
-
-    if (stat(node, &sbuf)) {
-        free(node);
-        return -1;
-    }
 
     maj = major(sbuf.st_rdev);
     min = minor(sbuf.st_rdev);
@@ -4009,27 +3988,18 @@ process_device(drmDevicePtr *device, const char *d_name,
     switch (subsystem_type) {
     case DRM_BUS_PCI:
     case DRM_BUS_VIRTIO:
-        ret = drmProcessPciDevice(device, node, node_type, maj, min,
+        return drmProcessPciDevice(device, node, node_type, maj, min,
                                    fetch_deviceinfo, flags);
-	free(node);
-	return ret;
     case DRM_BUS_USB:
-        ret = drmProcessUsbDevice(device, node, node_type, maj, min,
+        return drmProcessUsbDevice(device, node, node_type, maj, min,
                                    fetch_deviceinfo, flags);
-	free(node);
-	return ret;
     case DRM_BUS_PLATFORM:
-        ret = drmProcessPlatformDevice(device, node, node_type, maj, min,
+        return drmProcessPlatformDevice(device, node, node_type, maj, min,
                                         fetch_deviceinfo, flags);
-	free(node);
-	return ret;
     case DRM_BUS_HOST1X:
-        ret = drmProcessHost1xDevice(device, node, node_type, maj, min,
+        return drmProcessHost1xDevice(device, node, node_type, maj, min,
                                       fetch_deviceinfo, flags);
-	free(node);
-	return ret;
     default:
-        free(node);
         return -1;
    }
 }
@@ -4352,10 +4322,10 @@ drm_public char *drmGetDeviceNameFromFd2(int fd)
     return drmGetDeviceNameFromFd(fd);
 #else
     struct stat      sbuf;
-    char            *node = NULL;
+    char             node[PATH_MAX + 1];
     const char      *dev_name;
     int              node_type;
-    int              maj, min, n, len = 0;
+    int              maj, min, n;
 
     if (fstat(fd, &sbuf))
         return NULL;
@@ -4374,16 +4344,11 @@ drm_public char *drmGetDeviceNameFromFd2(int fd)
     if (!dev_name)
         return NULL;
 
-    len = snprintf(NULL, 0, dev_name, DRM_DIR_NAME, min);
-    if (len < 0)
-      return NULL;
-    len++;
-    node = malloc(len);
-    n = snprintf(node, len, dev_name, DRM_DIR_NAME, min);
-    if (n == -1 || n >= len)
+    n = snprintf(node, PATH_MAX, dev_name, DRM_DIR_NAME, min);
+    if (n == -1 || n >= PATH_MAX)
       return NULL;
 
-    return node;
+    return strdup(node);
 #endif
 }
 
