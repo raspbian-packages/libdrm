@@ -14,6 +14,7 @@ Build-Depends:
  libudev-dev [linux-any],
  libpciaccess-dev,
  python3-docutils,
+# valgrind [amd64 armhf i386 mips mipsel powerpc s390x],
 Build-conflicts:
  Valgrind
 Standards-Version: 4.5.0
@@ -36,6 +37,8 @@ Depends:
  libdrm-exynos1 (= ${binary:Version}) [any-arm],
  libdrm-tegra0 (= ${binary:Version}) [any-arm arm64],
  libdrm-etnaviv1 (= ${binary:Version}) [armhf arm64],
+ libpciaccess-dev,
+# valgrind [amd64 armhf i386 mips mipsel powerpc s390x],
  ${misc:Depends},
 Multi-Arch: same
 Description: Userspace interface to kernel DRM services -- development files

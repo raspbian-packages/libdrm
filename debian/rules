@@ -10,10 +10,12 @@ DEB_HOST_ARCH_OS  ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_ARCH_CPU ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU)
 
 confflags = \
+	-Ddefault_library=both \
 	-Dradeon=true \
 	-Damdgpu=true \
 	-Dlibkms=false \
 	-Dinstall-test-programs=true \
+	-Dvalgrind=false \
 	$()
 
 # Linux vs. the rest:
