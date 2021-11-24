@@ -23,6 +23,7 @@ libdrm.so.2 libdrm2 #MINVER#
  drmAvailable@Base 2.3.1
  drmCheckModesettingSupported@Base 2.4.3
  drmClose@Base 2.3.1
+ drmCloseBufferHandle@Base 2.4.108
  drmCloseOnce@Base 2.3.1
  drmCommandNone@Base 2.3.1
  drmCommandRead@Base 2.3.1
@@ -112,6 +113,7 @@ libdrm.so.2 libdrm2 #MINVER#
  drmModeDestroyPropertyBlob@Base 2.4.62
  drmModeDetachMode@Base 2.4.3
  drmModeDirtyFB@Base 2.4.17
+ drmModeFormatModifierBlobIterNext@Base 2.4.108
  drmModeFreeConnector@Base 2.4.3
  drmModeFreeCrtc@Base 2.4.3
  drmModeFreeEncoder@Base 2.4.3

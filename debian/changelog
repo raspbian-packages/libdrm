@@ -1,9 +1,17 @@
-libdrm (2.4.107-8+rpi1) bookworm-staging; urgency=medium
+libdrm (2.4.108-1+rpi1) bookworm-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Mon, 11 Oct 2021 16:12:32 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Wed, 24 Nov 2021 03:16:54 +0000
+
+libdrm (2.4.108-1) unstable; urgency=medium
+
+  * New upstream release.
+  * libdrm-tests: Add amdgpu_stress.
+  * symbols: Updated.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 17 Nov 2021 11:33:25 +0200
 
 libdrm (2.4.107-8) unstable; urgency=medium
 
