@@ -110,9 +110,6 @@ override_dh_install:
 	done
   endif
 
-override_dh_missing:
-	dh_missing --fail-missing
-
 override_dh_makeshlibs:
 	dh_makeshlibs -plibdrm2 -V'libdrm2 (>= 2.4.89)' --add-udeb=libdrm2-udeb -- -c4
 ifeq ($(INTEL), yes)
