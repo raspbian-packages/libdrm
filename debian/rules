@@ -13,7 +13,6 @@ confflags = \
 	-Ddefault_library=both \
 	-Dradeon=true \
 	-Damdgpu=true \
-	-Dlibkms=false \
 	-Dinstall-test-programs=true \
 	-Dvalgrind=false \
 	$()
@@ -101,6 +100,11 @@ override_dh_install:
 
   ifneq (,$(filter $(DEB_HOST_ARCH_CPU),arm))
 	for file in debian/tmp/usr/bin/exynos_*; do \
+		mv $$file debian/libdrm-tests/usr/bin; \
+	done
+  endif
+  ifneq (,$(filter $(DEB_HOST_ARCH_CPU),arm arm64))
+	for file in debian/tmp/usr/bin/tegra-*; do \
 		mv $$file debian/libdrm-tests/usr/bin; \
 	done
   endif
