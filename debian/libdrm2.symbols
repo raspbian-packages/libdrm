@@ -67,6 +67,7 @@ libdrm.so.2 libdrm2 #MINVER#
  drmGetEntry@Base 2.3.1
  drmGetFormatModifierName@Base 2.4.107
  drmGetFormatModifierVendor@Base 2.4.107
+ drmGetFormatName@Base 2.4.113
  drmGetHashTable@Base 2.3.1
  drmGetInterruptFromBusID@Base 2.3.1
  drmGetLibVersion@Base 2.3.1

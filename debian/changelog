@@ -1,9 +1,23 @@
-libdrm (2.4.112-3+rpi1) bookworm-staging; urgency=medium
+libdrm (2.4.113-2+rpi1) bookworm-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Fri, 05 Aug 2022 14:12:01 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Sun, 25 Sep 2022 02:05:32 +0000
+
+libdrm (2.4.113-2) unstable; urgency=medium
+
+  * rules: Fix arm FTBFS.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Mon, 19 Sep 2022 18:52:34 +0300
+
+libdrm (2.4.113-1) unstable; urgency=medium
+
+  * New upstream release.
+  * rules: Rework confflags to match current upstream.
+  * symbols: Updated.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Mon, 19 Sep 2022 10:53:18 +0300
 
 libdrm (2.4.112-3) unstable; urgency=medium
 
