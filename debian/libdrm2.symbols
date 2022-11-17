@@ -109,10 +109,12 @@ libdrm.so.2 libdrm2 #MINVER#
  drmModeAttachMode@Base 2.4.3
  drmModeConnectorGetPossibleCrtcs@Base 2.4.112
  drmModeConnectorSetProperty@Base 2.4.3
+ drmModeCreateDumbBuffer@Base 2.4.114
  drmModeCreateLease@Base 2.4.89
  drmModeCreatePropertyBlob@Base 2.4.62
  drmModeCrtcGetGamma@Base 2.4.3
  drmModeCrtcSetGamma@Base 2.4.3
+ drmModeDestroyDumbBuffer@Base 2.4.114
  drmModeDestroyPropertyBlob@Base 2.4.62
  drmModeDetachMode@Base 2.4.3
  drmModeDirtyFB@Base 2.4.17
@@ -143,6 +145,7 @@ libdrm.so.2 libdrm2 #MINVER#
  drmModeGetPropertyBlob@Base 2.4.3
  drmModeGetResources@Base 2.4.3
  drmModeListLessees@Base 2.4.89
+ drmModeMapDumbBuffer@Base 2.4.114
  drmModeMoveCursor@Base 2.4.3
  drmModeObjectGetProperties@Base 2.4.36
  drmModeObjectSetProperty@Base 2.4.36
