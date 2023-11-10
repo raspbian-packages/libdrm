@@ -34,7 +34,7 @@ endif
 
 # Intel is only on x86:
 ifneq (,$(filter amd64 i386,$(DEB_HOST_ARCH_CPU)))
-ifneq (,$(filter linux kfreebsd hurd,$(DEB_HOST_ARCH_OS)))
+ifneq (,$(filter linux hurd,$(DEB_HOST_ARCH_OS)))
 	INTEL = yes
 endif
 endif

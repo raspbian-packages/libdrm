@@ -25,10 +25,10 @@ Homepage: https://cgit.freedesktop.org/mesa/drm/
 
 Package: libdrm-dev
 Section: libdevel
-Architecture: linux-any kfreebsd-any hurd-any
+Architecture: linux-any hurd-any
 Depends:
  libdrm2 (= ${binary:Version}),
- libdrm-intel1 (= ${binary:Version}) [amd64 i386 kfreebsd-amd64 kfreebsd-i386 hurd-i386 x32],
+ libdrm-intel1 (= ${binary:Version}) [amd64 i386 hurd-i386 x32],
  libdrm-radeon1 (= ${binary:Version}),
  libdrm-nouveau2 (= ${binary:Version}) [linux-any],
  libdrm-amdgpu1 (= ${binary:Version}),
@@ -51,7 +51,7 @@ Description: Userspace interface to kernel DRM services -- development files
  This package provides the development environment for libdrm.
 
 Package: libdrm2
-Architecture: linux-any kfreebsd-any hurd-any
+Architecture: linux-any hurd-any
 Depends:
  libdrm-common (>= ${source:Version}),
  ${shlibs:Depends},
@@ -100,7 +100,7 @@ Description: Testing tools from the libdrm project
 Package: libdrm2-udeb
 Package-Type: udeb
 Section: debian-installer
-Architecture: linux-any kfreebsd-any hurd-any
+Architecture: linux-any hurd-any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
@@ -108,7 +108,7 @@ Description: Userspace interface to kernel DRM services -- runtime
  This is a udeb, or a microdeb, for the debian-installer.
 
 Package: libdrm-intel1
-Architecture: amd64 i386 kfreebsd-amd64 kfreebsd-i386 hurd-i386 x32
+Architecture: amd64 i386 hurd-i386 x32
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
@@ -135,7 +135,7 @@ Description: Userspace interface to nouveau-specific kernel DRM services -- runt
  OpenGL drivers.
 
 Package: libdrm-radeon1
-Architecture: linux-any kfreebsd-any hurd-any
+Architecture: linux-any hurd-any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
@@ -205,7 +205,7 @@ Description: Userspace interface to tegra-specific kernel DRM services -- runtim
  OpenGL drivers.
 
 Package: libdrm-amdgpu1
-Architecture: linux-any kfreebsd-any hurd-any
+Architecture: linux-any hurd-any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
