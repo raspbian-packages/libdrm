@@ -5,7 +5,6 @@ Uploaders: Andreas Boll <aboll@debian.org>
 Build-Depends:
  debhelper-compat (= 13),
  meson,
- libatomic-ops-dev,
  libpciaccess-dev,
  libudev-dev [linux-any],
  libx11-dev,
