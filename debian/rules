@@ -32,8 +32,8 @@ else
 	NOUVEAU = no
 endif
 
-# Intel is only on x86:
-ifneq (,$(filter amd64 i386,$(DEB_HOST_ARCH_CPU)))
+# Intel is only on x86 and arm64:
+ifneq (,$(filter amd64 arm64 i386,$(DEB_HOST_ARCH_CPU)))
 ifneq (,$(filter linux hurd,$(DEB_HOST_ARCH_OS)))
 	INTEL = yes
 endif

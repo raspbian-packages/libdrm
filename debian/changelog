@@ -1,9 +1,23 @@
-libdrm (2.4.120-2+rpi1) trixie-staging; urgency=medium
+libdrm (2.4.121-2+rpi1) trixie-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Fri, 16 Feb 2024 20:42:16 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Wed, 19 Jun 2024 03:53:23 +0000
+
+libdrm (2.4.121-2) unstable; urgency=medium
+
+  * rules: Enable intel on arm64. (Closes: #1070815)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 11 Jun 2024 18:26:23 +0300
+
+libdrm (2.4.121-1) unstable; urgency=medium
+
+  * New upstream release.
+  * control: Add arm64 to libdrm-intel1 archs. (Closes: #1070815)
+  * symbols: Updated.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Mon, 10 Jun 2024 19:31:37 +0300
 
 libdrm (2.4.120-2) unstable; urgency=medium
 

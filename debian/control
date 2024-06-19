@@ -106,7 +106,7 @@ Description: Userspace interface to kernel DRM services -- runtime
  This is a udeb, or a microdeb, for the debian-installer.
 
 Package: libdrm-intel1
-Architecture: amd64 i386 hurd-i386 x32
+Architecture: amd64 arm64 i386 hurd-i386 x32
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
