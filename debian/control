@@ -8,7 +8,7 @@ Build-Depends:
  libpciaccess-dev,
  libudev-dev [linux-any],
  libx11-dev,
- pkg-config,
+ pkgconf,
  python3-docutils,
  python3-setuptools,
 # valgrind [amd64 armhf i386 mips mipsel powerpc s390x],
