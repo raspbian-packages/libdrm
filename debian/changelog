@@ -1,9 +1,17 @@
-libdrm (2.4.122-1+rpi1) trixie-staging; urgency=medium
+libdrm (2.4.123-1+rpi1) trixie-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Sun, 18 Aug 2024 00:15:45 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Thu, 19 Sep 2024 05:58:17 +0000
+
+libdrm (2.4.123-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Add upstream metadata, drop old git url from d/watch.
+  * Update signing-key.asc.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 10 Sep 2024 11:03:50 +0300
 
 libdrm (2.4.122-1) unstable; urgency=medium
 
