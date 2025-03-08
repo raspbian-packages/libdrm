@@ -26,7 +26,7 @@
 project(
   'libdrm',
   ['c'],
-  version : '2.4.123',
+  version : '2.4.124',
   license : 'MIT',
   meson_version : '>= 0.59',
   default_options : ['buildtype=debugoptimized', 'c_std=c11'],
@@ -169,7 +169,7 @@ else
 endif
 
 # The header is not required on Linux, and is in fact deprecated in glibc 2.30+
-if ['linux'].contains(host_machine.system())
+if host_machine.system() == 'linux'
   config.set10('HAVE_SYS_SYSCTL_H', false)
 else
   # From Niclas Zeising:

@@ -1,9 +1,17 @@
-libdrm (2.4.123-1+rpi1) trixie-staging; urgency=medium
+libdrm (2.4.124-1+rpi1) trixie-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Thu, 19 Sep 2024 05:58:17 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Sat, 08 Mar 2025 17:22:10 +0000
+
+libdrm (2.4.124-1) unstable; urgency=medium
+
+  * New upstream release.
+  * amdgpu-add-env-support-for-amdgpu-ids.patch: Add a patch to allow
+    using an env variable for amdgpu.ids path. (LP: #2100483)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 27 Feb 2025 14:57:25 +0200
 
 libdrm (2.4.123-1) unstable; urgency=medium
 
