@@ -1,9 +1,19 @@
-libdrm (2.4.124-1+rpi1) trixie-staging; urgency=medium
+libdrm (2.4.124-2+rpi1) trixie-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Sat, 08 Mar 2025 17:22:10 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Wed, 09 Apr 2025 05:52:06 +0000
+
+libdrm (2.4.124-2) unstable; urgency=medium
+
+  [ Daniel van Vugt ]
+  * Add xf86drm-Handle-NULL-in-drmCopyVersion.patch (LP: #2104352)
+
+  [ Bo YU ]
+  * Enable building libdrm-intel1 for riscv64 (Closes: #1085314)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 01 Apr 2025 11:08:19 +0300
 
 libdrm (2.4.124-1) unstable; urgency=medium
 

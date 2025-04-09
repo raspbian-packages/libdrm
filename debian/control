@@ -26,7 +26,7 @@ Section: libdevel
 Architecture: linux-any hurd-any
 Depends:
  libdrm2 (= ${binary:Version}),
- libdrm-intel1 (= ${binary:Version}) [amd64 i386 hurd-i386 x32],
+ libdrm-intel1 (= ${binary:Version}) [amd64 i386 hurd-i386 x32 riscv64],
  libdrm-radeon1 (= ${binary:Version}),
  libdrm-nouveau2 (= ${binary:Version}) [linux-any],
  libdrm-amdgpu1 (= ${binary:Version}),
@@ -106,7 +106,7 @@ Description: Userspace interface to kernel DRM services -- runtime
  This is a udeb, or a microdeb, for the debian-installer.
 
 Package: libdrm-intel1
-Architecture: amd64 arm64 i386 hurd-i386 x32
+Architecture: amd64 arm64 i386 hurd-i386 x32 riscv64
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},

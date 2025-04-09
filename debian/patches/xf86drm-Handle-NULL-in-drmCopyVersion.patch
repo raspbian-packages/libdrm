@@ -1,0 +1,34 @@
+From: Daniel van Vugt <daniel.van.vugt@canonical.com>
+Date: Thu, 27 Mar 2025 17:41:37 +0800
+Subject: xf86drm: Handle NULL in drmCopyVersion
+
+Just as it is already handled in the caller, `drmGetVersion`.
+
+I'm not sure what the offending driver is, but the Ubuntu incidents
+seem to be coming from a dual Intel/Nvidia machine. And they show
+it is `card1` so I'm guessing `nvidia-drm` is the offender.
+
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/2104352
+---
+ xf86drm.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/xf86drm.c b/xf86drm.c
+index 6ca5626..b5db577 100644
+--- a/xf86drm.c
++++ b/xf86drm.c
+@@ -1343,11 +1343,11 @@ static void drmCopyVersion(drmVersionPtr d, const drm_version_t *s)
+     d->version_minor      = s->version_minor;
+     d->version_patchlevel = s->version_patchlevel;
+     d->name_len           = s->name_len;
+-    d->name               = strdup(s->name);
++    d->name               = s->name ? strdup(s->name) : NULL;
+     d->date_len           = s->date_len;
+-    d->date               = strdup(s->date);
++    d->date               = s->date ? strdup(s->date) : NULL;
+     d->desc_len           = s->desc_len;
+-    d->desc               = strdup(s->desc);
++    d->desc               = s->desc ? strdup(s->desc) : NULL;
+ }
+ 
+ 
