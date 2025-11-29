@@ -1,0 +1,74 @@
+From 3f51674445f6901a4336a2b23fe98ef5009b7164 Mon Sep 17 00:00:00 2001
+From: Sergio Costas Rodriguez <sergio.costas@canonical.com>
+Date: Wed, 2 Nov 2022 15:48:07 +0100
+Subject: [PATCH] amdgpu: add env support for amdgpu.ids path
+
+In some cases, like when building a Snap application that uses
+libdrm, the `amdgpu.ids` file isn't directly available at the
+compiling place, but inside a mounted folder. This forces each
+application to link/bind the file from the current place
+(usually at the $SNAP/gnome-platform/usr/share/libdrm/amdgpu.ids)
+which is cumbersome.
+
+This patch allows to set an environment variable, called
+AMDGPU_ASIC_ID_TABLE_PATH, where the file will be also searched
+if it isn't located in the default, meson-configured, path.
+---
+ README.rst              |  9 +++++++++
+ amdgpu/amdgpu_asic_id.c | 14 ++++++++++----
+ 2 files changed, 19 insertions(+), 4 deletions(-)
+
+--- a/README.rst
++++ b/README.rst
+@@ -49,3 +49,12 @@ Then use ninja to build and install:
+ 
+ If you are installing into a system location you will need to run install
+ separately, and as root.
++
++AMDGPU ASIC table file
++----------------------
++
++The AMDGPU driver requires the `amdgpu.ids` file. It is usually located at
++`$PREFIX/share/libdrm`, but it is possible to specify an alternative path
++during runtime by setting the `AMDGPU_ASIC_ID_TABLE_PATH` environment
++variable with the full path (including the file name) of the alternative
++file.
+--- a/amdgpu/amdgpu_asic_id.c
++++ b/amdgpu/amdgpu_asic_id.c
+@@ -168,10 +168,16 @@ void amdgpu_parse_asic_ids(struct amdgpu
+ 	ssize_t n;
+ 	int line_num = 1;
+ 	int r = 0;
++	const char *amdgpu_asic_id_table_path = getenv("AMDGPU_ASIC_ID_TABLE_PATH");
++
++	if (amdgpu_asic_id_table_path == NULL || amdgpu_asic_id_table_path[0] == '\0') {
++		amdgpu_asic_id_table_path = AMDGPU_ASIC_ID_TABLE;
++	}
++
++	fp = fopen(amdgpu_asic_id_table_path, "r");
+ 
+-	fp = fopen(AMDGPU_ASIC_ID_TABLE, "r");
+ 	if (!fp) {
+-		fprintf(stderr, "%s: %s\n", AMDGPU_ASIC_ID_TABLE,
++		fprintf(stderr, "%s: %s\n", amdgpu_asic_id_table_path,
+ 			strerror(errno));
+ 		goto get_cpu;
+ 	}
+@@ -188,7 +194,7 @@ void amdgpu_parse_asic_ids(struct amdgpu
+ 			continue;
+ 		}
+ 
+-		drmMsg("%s version: %s\n", AMDGPU_ASIC_ID_TABLE, line);
++		drmMsg("%s version: %s\n", amdgpu_asic_id_table_path, line);
+ 		break;
+ 	}
+ 
+@@ -206,7 +212,7 @@ void amdgpu_parse_asic_ids(struct amdgpu
+ 
+ 	if (r == -EINVAL) {
+ 		fprintf(stderr, "Invalid format: %s: line %d: %s\n",
+-			AMDGPU_ASIC_ID_TABLE, line_num, line);
++			amdgpu_asic_id_table_path, line_num, line);
+ 	} else if (r && r != -EAGAIN) {
+ 		fprintf(stderr, "%s: Cannot parse ASIC IDs: %s\n",
+ 			__func__, strerror(-r));
