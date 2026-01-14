@@ -104,6 +104,62 @@ out:
 	return r;
 }
 
+static void amdgpu_parse_proc_cpuinfo(struct amdgpu_device *dev)
+{
+	const char *search_key = "model name";
+	const char *radeon_key = "Radeon";
+	char *line = NULL;
+	size_t len = 0;
+	FILE *fp;
+
+	fp = fopen("/proc/cpuinfo", "r");
+	if (fp == NULL) {
+		fprintf(stderr, "%s\n", strerror(errno));
+		return;
+	}
+
+	while (getline(&line, &len, fp) != -1) {
+		char *saveptr;
+		char *value;
+
+		if (strncmp(line, search_key, strlen(search_key)))
+			continue;
+
+		/* check for parts that have both CPU and GPU information */
+		value = strstr(line, radeon_key);
+
+		/* get content after the first colon */
+		if (value == NULL) {
+			value = strstr(line, ":");
+			if (value == NULL)
+				continue;
+			value++;
+		}
+
+		/* strip whitespace */
+		while (*value == ' ' || *value == '\t')
+			value++;
+		saveptr = strchr(value, '\n');
+		if (saveptr)
+			*saveptr = '\0';
+
+		/* Add AMD to the new string if it's missing from slicing/dicing */
+		if (strncmp(value, "AMD", 3) != 0) {
+			char *tmp = malloc(strlen(value) + 5);
+
+			if (!tmp)
+				break;
+			sprintf(tmp, "AMD %s", value);
+			dev->marketing_name = tmp;
+		} else
+			dev->marketing_name = strdup(value);
+		break;
+	}
+
+	free(line);
+	fclose(fp);
+}
+
 void amdgpu_parse_asic_ids(struct amdgpu_device *dev)
 {
 	FILE *fp;
@@ -123,7 +179,7 @@ void amdgpu_parse_asic_ids(struct amdgpu_device *dev)
 	if (!fp) {
 		fprintf(stderr, "%s: %s\n", amdgpu_asic_id_table_path,
 			strerror(errno));
-		return;
+		goto get_cpu;
 	}
 
 	/* 1st valid line is file version */
@@ -164,4 +220,10 @@ void amdgpu_parse_asic_ids(struct amdgpu_device *dev)
 
 	free(line);
 	fclose(fp);
+
+get_cpu:
+	if (dev->info.ids_flags & AMDGPU_IDS_FLAGS_FUSION &&
+	    dev->marketing_name == NULL) {
+		amdgpu_parse_proc_cpuinfo(dev);
+	}
 }

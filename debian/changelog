@@ -1,9 +1,46 @@
-libdrm (2.4.124-2+rpi1) trixie-staging; urgency=medium
+libdrm (2.4.129-1+rpi1) forky-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Wed, 09 Apr 2025 05:52:06 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Wed, 14 Jan 2026 00:50:33 +0000
+
+libdrm (2.4.129-1) unstable; urgency=medium
+
+  * New upstream release.
+  * patches: Refreshed.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Sat, 29 Nov 2025 23:35:21 +0200
+
+libdrm (2.4.127-1) unstable; urgency=medium
+
+  [ Dylan Aïssi ]
+  * Team upload.
+  * debian/copyright: Convert to machine-readable format (Closes: #1107707)
+
+  [ Timo Aaltonen ]
+  * New upstream release.
+  * watch: Update to version 5.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 17 Oct 2025 11:03:37 +0300
+
+libdrm (2.4.125-2) unstable; urgency=medium
+
+  * Upload to sid.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 22 Aug 2025 14:04:45 +0300
+
+libdrm (2.4.125-1) experimental; urgency=medium
+
+  [ Jianfeng Liu ]
+  * Enable build libdrm-intel1 for loong64. (Closes: #1107223)
+
+  [ Timo Aaltonen ]
+  * New upstream release.
+  * patches: Drop the upstreamed fix for xf86drm.
+  * symbols: Updated.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 25 Jun 2025 10:46:34 +0300
 
 libdrm (2.4.124-2) unstable; urgency=medium
 

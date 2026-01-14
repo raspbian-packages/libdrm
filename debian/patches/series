@@ -1,3 +1,2 @@
 01_default_perms.diff
 amdgpu-add-env-support-for-amdgpu-ids.patch
-xf86drm-Handle-NULL-in-drmCopyVersion.patch

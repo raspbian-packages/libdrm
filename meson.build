@@ -26,7 +26,7 @@
 project(
   'libdrm',
   ['c'],
-  version : '2.4.124',
+  version : '2.4.129',
   license : 'MIT',
   meson_version : '>= 0.59',
   default_options : ['buildtype=debugoptimized', 'c_std=c11'],
@@ -205,7 +205,6 @@ libdrm_c_args = cc.get_supported_arguments([
   '-Wno-unused-parameter', '-Wno-attributes', '-Wno-long-long',
   '-Wno-missing-field-initializers'])
 
-dep_cunit = dependency('cunit', version : '>= 2.1', required : false)
 dep_cairo = dependency('cairo', required : get_option('cairo-tests'))
 with_cairo_tests = dep_cairo.found()
 
@@ -296,9 +295,7 @@ ext_libdrm = declare_dependency(
   include_directories : [inc_root, inc_drm],
 )
 
-if meson.version().version_compare('>= 0.54.0')
-  meson.override_dependency('libdrm', ext_libdrm)
-endif
+meson.override_dependency('libdrm', ext_libdrm)
 
 install_headers('libsync.h', 'xf86drm.h', 'xf86drmMode.h')
 install_headers(

@@ -18,8 +18,6 @@ if it isn't located in the default, meson-configured, path.
  amdgpu/amdgpu_asic_id.c | 14 ++++++++++----
  2 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/README.rst b/README.rst
-index 746080319..6532c12ff 100644
 --- a/README.rst
 +++ b/README.rst
 @@ -49,3 +49,12 @@ Then use ninja to build and install:
@@ -35,11 +33,9 @@ index 746080319..6532c12ff 100644
 +during runtime by setting the `AMDGPU_ASIC_ID_TABLE_PATH` environment
 +variable with the full path (including the file name) of the alternative
 +file.
-diff --git a/amdgpu/amdgpu_asic_id.c b/amdgpu/amdgpu_asic_id.c
-index a5007ffc8..81a7cf7f4 100644
 --- a/amdgpu/amdgpu_asic_id.c
 +++ b/amdgpu/amdgpu_asic_id.c
-@@ -112,10 +112,16 @@ void amdgpu_parse_asic_ids(struct amdgpu_device *dev)
+@@ -168,10 +168,16 @@ void amdgpu_parse_asic_ids(struct amdgpu
  	ssize_t n;
  	int line_num = 1;
  	int r = 0;
@@ -56,9 +52,9 @@ index a5007ffc8..81a7cf7f4 100644
 -		fprintf(stderr, "%s: %s\n", AMDGPU_ASIC_ID_TABLE,
 +		fprintf(stderr, "%s: %s\n", amdgpu_asic_id_table_path,
  			strerror(errno));
- 		return;
+ 		goto get_cpu;
  	}
-@@ -132,7 +138,7 @@ void amdgpu_parse_asic_ids(struct amdgpu_device *dev)
+@@ -188,7 +194,7 @@ void amdgpu_parse_asic_ids(struct amdgpu
  			continue;
  		}
  
@@ -67,7 +63,7 @@ index a5007ffc8..81a7cf7f4 100644
  		break;
  	}
  
-@@ -150,7 +156,7 @@ void amdgpu_parse_asic_ids(struct amdgpu_device *dev)
+@@ -206,7 +212,7 @@ void amdgpu_parse_asic_ids(struct amdgpu
  
  	if (r == -EINVAL) {
  		fprintf(stderr, "Invalid format: %s: line %d: %s\n",
@@ -76,6 +72,3 @@ index a5007ffc8..81a7cf7f4 100644
  	} else if (r && r != -EAGAIN) {
  		fprintf(stderr, "%s: Cannot parse ASIC IDs: %s\n",
  			__func__, strerror(-r));
--- 
-GitLab
-
