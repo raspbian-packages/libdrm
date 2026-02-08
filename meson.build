@@ -26,7 +26,7 @@
 project(
   'libdrm',
   ['c'],
-  version : '2.4.129',
+  version : '2.4.131',
   license : 'MIT',
   meson_version : '>= 0.59',
   default_options : ['buildtype=debugoptimized', 'c_std=c11'],
@@ -50,6 +50,8 @@ with_tests = get_option('tests')
 dep_threads = dependency('threads')
 
 cc = meson.get_compiler('c')
+
+config.set10('HAVE_SECURE_GETENV', cc.has_function('secure_getenv'))
 
 android = cc.compiles('''int func() { return __ANDROID__; }''')
 
