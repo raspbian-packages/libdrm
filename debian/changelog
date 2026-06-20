@@ -1,9 +1,23 @@
-libdrm (2.4.131-1+rpi1) forky-staging; urgency=medium
+libdrm (2.4.134-1+rpi1) forky-staging; urgency=medium
 
   [changes brought forward from 2.4.74-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Wed, 28 Jun 2017 21:14:42 +0000]
   * Move valgrind to build-conflicts, the old version in raspbian breaks the build.
 
- -- Raspbian forward porter <root@raspbian.org>  Sun, 08 Feb 2026 22:04:39 +0000
+ -- Raspbian forward porter <root@raspbian.org>  Sat, 20 Jun 2026 02:27:13 +0000
+
+libdrm (2.4.134-1) unstable; urgency=medium
+
+  [ Timo Aaltonen ]
+  * New upstream release.
+  * symbols: Updated.
+
+  [ Diederik de Haas ]
+  * control: Update upstream Homepage URL
+
+  [ Alessandro Astone ]
+  * d/control: libdrm-dev depends on libdrm-intel1 on arm64
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 03 Jun 2026 13:56:12 +0300
 
 libdrm (2.4.131-1) unstable; urgency=medium
 
