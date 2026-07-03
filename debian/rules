@@ -76,8 +76,8 @@ else
 	confflags += -Dtegra=disabled
 endif
 
-# Freedreno is on arm and arm64
-ifneq (,$(filter arm arm64,$(DEB_HOST_ARCH_CPU)))
+# Freedreno is on amd64, arm and arm64
+ifneq (,$(filter amd64 arm arm64,$(DEB_HOST_ARCH_CPU)))
 	FREEDRENO = yes
 endif
 ifeq ($(FREEDRENO), yes)

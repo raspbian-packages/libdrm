@@ -19,19 +19,19 @@ Rules-Requires-Root: no
 Section: libs
 Vcs-Git: https://salsa.debian.org/xorg-team/lib/libdrm
 Vcs-Browser: https://salsa.debian.org/xorg-team/lib/libdrm
-Homepage: https://gitlab.freedesktop.org/mesa/drm/
+Homepage: https://gitlab.freedesktop.org/mesa/libdrm/
 
 Package: libdrm-dev
 Section: libdevel
 Architecture: linux-any hurd-any
 Depends:
  libdrm2 (= ${binary:Version}),
- libdrm-intel1 (= ${binary:Version}) [amd64 i386 hurd-i386 x32 riscv64 loong64],
+ libdrm-intel1 (= ${binary:Version}) [amd64 arm64 i386 hurd-i386 x32 riscv64 loong64],
  libdrm-radeon1 (= ${binary:Version}),
  libdrm-nouveau2 (= ${binary:Version}) [linux-any],
  libdrm-amdgpu1 (= ${binary:Version}),
  libdrm-omap1 (= ${binary:Version}) [any-arm],
- libdrm-freedreno1 (= ${binary:Version}) [any-arm arm64],
+ libdrm-freedreno1 (= ${binary:Version}) [amd64 any-arm arm64],
  libdrm-exynos1 (= ${binary:Version}) [any-arm],
  libdrm-tegra0 (= ${binary:Version}) [any-arm arm64],
  libdrm-etnaviv1 (= ${binary:Version}) [armhf arm64],
@@ -161,7 +161,7 @@ Description: Userspace interface to omap-specific kernel DRM services -- runtime
  OpenGL drivers.
 
 Package: libdrm-freedreno1
-Architecture: any-arm arm64
+Architecture: amd64 any-arm arm64
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
